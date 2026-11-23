@@ -1,0 +1,22 @@
+
+{
+  "name": "Tanylel Feeds",
+  "short_name": "Tanylel",
+  "description": "Tanylel Feeds mobile application",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16803c",
+  "icons": [
+    {
+      "src": "icon-192-1.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512-3.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
