@@ -1,5 +1,6 @@
 
-const CACHE_NAME = "tanylel-feeds-v1";
+// Tanylel Feeds service worker
+const CACHE_NAME = "tanylel-feeds-v2";
 
 const FILES_TO_CACHE = [
   "./",
@@ -12,39 +13,61 @@ const FILES_TO_CACHE = [
 // Install and cache website files
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(FILES_TO_CACHE))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await Promise.all(
+        FILES_TO_CACHE.map(async (file) => {
+          try {
+            await cache.add(file);
+          } catch (error) {
+            console.log("Could not cache:", file);
+          }
+        })
+      );
+    })
   );
+
+  self.skipWaiting();
 });
 
-// Remove old caches
+// Activate and remove old Tanylel caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
+    caches.keys().then((names) =>
       Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
+        names
+          .filter(
+            (name) =>
+              name.startsWith("tanylel-feeds-") &&
+              name !== CACHE_NAME
+          )
+          .map((name) => caches.delete(name))
       )
-    ).then(() => self.clients.claim())
+    )
   );
+
+  self.clients.claim();
 });
 
-// Support offline access
+// Load cached files when offline
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  const url = new URL(event.request.url);
+
+  if (url.origin !== self.location.origin) return;
+
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME)
-            .then((cache) => cache.put(event.request, copy));
+    caches.match(event.request).then(async (cached) => {
+      if (cached) return cached;
+
+      try {
+        return await fetch(event.request);
+      } catch (error) {
+        if (event.request.mode === "navigate") {
+          return caches.match("./index.html");
         }
-        return response;
-      })
-      .catch(() => caches.match(event.request))
+        throw error;
+      }
+    })
   );
 });
