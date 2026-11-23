@@ -146,5 +146,20 @@
     <footer><span>© <span id="year"></span> Tanylel Feeds</span><span>Nutrition You Can Trust</span></footer>
   </div>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("./sw.js")
+      .then(function(registration) {
+        console.log("Tanylel Feeds app is ready!");
+      })
+      .catch(function(error) {
+        console.log("Service worker error:", error);
+      });
+  });
+}
+</script>
+
 </body>
 </html>
